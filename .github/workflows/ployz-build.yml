@@ -1,0 +1,36 @@
+name: Ployz Build
+run-name: Ployz Build ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      matrix:
+        required: true
+        type: string
+      assignment_id:
+        required: true
+        type: string
+      cloud_url:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(inputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Install Ployz
+        shell: bash
+        run: curl -fsSL https://ployz.sh | sh -s -- --build-executor
+      - name: Build
+        shell: bash
+        env:
+          PLOYZ_BUILD_ASSIGNMENT_ID: ${{ inputs.assignment_id }}
+          PLOYZ_CLOUD_URL: ${{ inputs.cloud_url }}
+          PLOYZ_PLATFORM: ${{ matrix.platform }}
+        run: ployz build github-actions
